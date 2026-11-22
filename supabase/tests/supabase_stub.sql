@@ -21,6 +21,5 @@ $$;
 grant usage on schema auth to anon, authenticated;
 grant execute on function auth.uid() to anon, authenticated;
 grant usage on schema public to anon, authenticated;
--- Supabase's default privileges: RLS, not grants, is what restricts access.
-alter default privileges in schema public grant all on tables to anon, authenticated;
-alter default privileges in schema public grant all on functions to anon, authenticated;
+-- Like newer Supabase projects, tables get no automatic grants to the API roles:
+-- each migration grants what it needs, and these tests check those grants too.
