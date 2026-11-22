@@ -7,7 +7,8 @@ begin;
 -- Users: a = customer Alice, b = customer Bob, c = catalogue admin, d = super admin
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-00000000000a', 'alice@example.com', '{"full_name":"Alice"}'),
-  ('00000000-0000-0000-0000-00000000000b', 'bob@example.com', '{"name":"Bob"}'),
+  ('00000000-0000-0000-0000-00000000000b', 'bob@example.com', '{"name":"Bob","customer_type":"government","phone":"9876543210"}'),
+  ('00000000-0000-0000-0000-00000000000e', 'eve@example.com', '{"customer_type":"super_admin"}'),
   ('00000000-0000-0000-0000-00000000000c', 'cat@example.com', '{}'),
   ('00000000-0000-0000-0000-00000000000d', 'root@example.com', '{}');
 insert into public.staff_roles (user_id, role) values
@@ -25,11 +26,24 @@ select pg_temp.check((select full_name from public.profiles where id = '00000000
   'signup creates a profile with the name from sign-in metadata');
 select pg_temp.check((select full_name from public.profiles where id = '00000000-0000-0000-0000-00000000000b') = 'Bob',
   'Google-style "name" metadata is used too');
+select pg_temp.check((select customer_type::text || phone from public.profiles where id = '00000000-0000-0000-0000-00000000000b') = 'government9876543210',
+  'customer type and phone from sign-up are kept');
+select pg_temp.check((select customer_type from public.profiles where id = '00000000-0000-0000-0000-00000000000e') = 'individual',
+  'an unexpected customer type falls back to individual');
 
 -- ---------------------------------------------------------------- anonymous
 set local role anon;
 select pg_temp.check((select count(*) from public.products) = 10, 'anonymous visitors see the 10 published products');
-select pg_temp.check((select count(*) from public.profiles) = 0, 'anonymous visitors see no profiles');
+do $$ begin
+  perform count(*) from public.profiles;
+  raise exception 'FAILED: anonymous visitor read profiles';
+exception when insufficient_privilege then raise notice 'ok - anonymous visitors cannot read profiles';
+end $$;
+do $$ begin
+  insert into public.products (sku, name, category_id) select 'X', 'X', id from public.categories limit 1;
+  raise exception 'FAILED: anonymous visitor added a product';
+exception when insufficient_privilege then raise notice 'ok - anonymous visitors cannot change the catalogue';
+end $$;
 reset role;
 
 -- ---------------------------------------------------------------- Alice (customer)
@@ -104,7 +118,7 @@ set local role authenticated;
 set local request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000d';
 select pg_temp.check((select count(*) from public.audit_logs where action = 'PRICE_CHANGED') = 1,
   'the price change was written to the audit log');
-select pg_temp.check((select count(*) from public.profiles) = 4, 'super admin sees every profile');
+select pg_temp.check((select count(*) from public.profiles) = 5, 'super admin sees every profile');
 update public.profiles set status = 'disabled' where id = '00000000-0000-0000-0000-00000000000c';
 reset role;
 

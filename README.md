@@ -52,9 +52,16 @@ DATABASE_URL=postgresql://postgres@localhost/devtest ./supabase/tests/run.sh
 
 ## Set up Supabase
 
-1. Create a project at supabase.com (free tier is fine for development).
-2. Apply `supabase/migrations/*.sql` then `supabase/seed.sql` (Supabase CLI: `supabase db push`, or paste into the SQL editor in order).
-3. Put the project URL and **anon** key in `apps/mobile/.env`, and as GitHub Actions secrets `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` for CI builds.
-4. Make the first super admin from the SQL editor: `insert into public.staff_roles (user_id, role) values ('<user id>', 'super_admin');`
+The development project (`cprqpquftrqvohbfngvf`) already has every migration and the seed applied. For a new project (staging, production):
+
+1. Create a project at supabase.com.
+2. Apply `supabase/migrations/*.sql` in order, then `supabase/seed.sql` (Supabase CLI `supabase db push`, or the SQL editor).
+3. Put the project URL and **anon** key in `apps/mobile/.env` for local runs. CI builds use the values in `.github/workflows/ci.yml`, which repository variables of the same names override.
+4. Authentication > Sign In / Providers > Email: keep "Confirm email" on.
+5. Authentication > Emails: the app asks for a 6-digit code, so the **Confirm signup** and **Reset password** templates must include `{{ .Token }}`, for example `<p>Your DEV Group code is <strong>{{ .Token }}</strong></p>`.
+6. Supabase's built-in email sender only reaches project team members and a few emails an hour. Before real customers sign up, add your own SMTP sender under Authentication > Emails > SMTP settings.
+7. Make the first super admin after they sign up in the app: `insert into public.staff_roles (user_id, role) select id, 'super_admin' from public.profiles where email = '<their email>';` Further staff roles are granted in the app under Staff > Settings.
+
+Sign in with Google is deferred.
 
 Never put the `service_role` key in the app or in this repository.

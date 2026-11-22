@@ -71,9 +71,11 @@ jobs:
         # Test build only: signed with the debug key. Play releases use the upload key (Phase 6).
         run: ./gradlew assembleRelease --no-daemon
         working-directory: apps/mobile/android
+        # Public client values only (the anon key is designed to ship inside the app;
+        # row-level security protects the data). Repo variables override them.
         env:
-          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          EXPO_PUBLIC_SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL || 'https://cprqpquftrqvohbfngvf.supabase.co' }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwcnFwcXVmdHJxdm9oYmZuZ3ZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ5OTc5MzMsImV4cCI6MjExMDU3MzkzM30.nW6CZPZOjPZawB2DiLW2Z7eOgIpMFThjIT2mJ32cacY' }}
       - uses: actions/upload-artifact@v4
         with:
           name: devgroup-test-apk
