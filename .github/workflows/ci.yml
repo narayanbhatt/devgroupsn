@@ -64,6 +64,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
+      # Caches Gradle and its plugins between runs: faster builds and fewer
+      # downloads from the Gradle plugin portal (a failed download broke one build).
+      - uses: gradle/actions/setup-gradle@v4
       - run: npm ci
       - name: Generate the native Android project
         run: npx expo prebuild --platform android --no-install
