@@ -113,6 +113,24 @@ set local request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
 select pg_temp.check((select count(*) from public.products where sku = 'TEST-DRAFT') = 0, 'customers do not see draft products');
 reset role;
 
+-- ---------------------------------------------------------------- photo storage
+set local role authenticated;
+set local request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000c';
+insert into storage.objects (bucket_id, name) values ('product-images', 'products/test/1.jpg');
+select pg_temp.check(true, 'a catalogue admin can upload a product photo');
+reset role;
+set local role authenticated;
+set local request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000a';
+do $$ begin
+  insert into storage.objects (bucket_id, name) values ('product-images', 'products/test/evil.jpg');
+  raise exception 'FAILED: a customer uploaded a product photo';
+exception when insufficient_privilege then raise notice 'ok - customers cannot upload product photos';
+end $$;
+delete from storage.objects where bucket_id = 'product-images';
+reset role;
+select pg_temp.check((select count(*) from storage.objects where bucket_id = 'product-images') = 1,
+  'customers cannot delete product photos');
+
 -- ---------------------------------------------------------------- super admin
 set local role authenticated;
 set local request.jwt.claim.sub = '00000000-0000-0000-0000-00000000000d';

@@ -39,6 +39,8 @@ function RootNavigator() {
       </Stack.Protected>
       <Stack.Protected guard={showStaff}>
         <Stack.Screen name="staff" options={{ headerShown: false }} />
+        <Stack.Screen name="staff-product/[id]" options={{ title: 'Product' }} />
+        <Stack.Screen name="staff-categories" options={{ title: 'Categories' }} />
       </Stack.Protected>
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="product/[id]" options={{ title: 'Product' }} />
