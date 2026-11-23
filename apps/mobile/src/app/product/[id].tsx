@@ -40,6 +40,18 @@ export default function ProductDetailScreen() {
         />
         {product.description ? <Body>{product.description}</Body> : null}
 
+        {product.keyFeatures.length > 0 && (
+          <View style={{ gap: spacing.xs }}>
+            <SectionTitle>Key features</SectionTitle>
+            {product.keyFeatures.map((f) => (
+              <View key={f} style={styles.feature}>
+                <Text style={styles.featureTick}>✓</Text>
+                <Text style={[type.body, { color: colors.textPrimary, flex: 1 }]}>{f}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
         {specs.length > 0 && (
           <View>
             <SectionTitle>Specifications</SectionTitle>
@@ -131,6 +143,8 @@ const styles = StyleSheet.create({
   dots: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xs, marginTop: spacing.sm },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.border },
   dotActive: { backgroundColor: colors.brandSecondary, width: 16 },
+  feature: { flexDirection: 'row', gap: spacing.sm },
+  featureTick: { ...type.body, color: colors.success, fontWeight: '700' },
   specs: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, marginTop: spacing.sm },
   specRow: { flexDirection: 'row', padding: spacing.md, gap: spacing.md },
   specDivider: { borderTopWidth: 1, borderTopColor: colors.border },

@@ -59,6 +59,7 @@ function toDraft(p: Product | null, categories: Category[]): ProductDraft {
     unit: p.unit,
     status: p.status,
     specs: specsToRows(p.specifications),
+    features: p.keyFeatures.join('\n'),
   };
 }
 
@@ -190,6 +191,15 @@ function Editor({ categories, product }: { categories: Category[]; product: Prod
           </View>
         </View>
         <TextField label="Unit" value={draft.unit} onChangeText={set('unit')} hint="piece, set, metre, job…" autoCapitalize="none" />
+
+        <SectionTitle>Key features</SectionTitle>
+        <TextField
+          label="Key features"
+          value={draft.features}
+          onChangeText={set('features')}
+          multiline
+          hint="One per line, e.g. IP65 weatherproof"
+        />
 
         <SectionTitle>Specifications</SectionTitle>
         {draft.specs.map((r, i) => (

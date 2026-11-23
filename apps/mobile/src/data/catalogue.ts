@@ -36,6 +36,7 @@ export interface Product {
   unit: string;
   status: ProductStatus;
   specifications: Record<string, string>;
+  keyFeatures: string[];
   images: ProductImage[];
 }
 
@@ -92,6 +93,7 @@ const p = (sku: string, name: string, categoryId: string, listedPrice: number, t
   unit: 'piece',
   status: 'published',
   specifications: {},
+  keyFeatures: [],
   images: [],
 });
 
@@ -111,7 +113,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
 // --------------------------------------------------------------------------- rows
 
 const PRODUCT_COLUMNS =
-  'id, sku, name, category_id, description, listed_price, pricing_type, tax_rate, tax_note, unit, status, specifications, product_images(id, storage_path, alt, sort_order)';
+  'id, sku, name, category_id, description, listed_price, pricing_type, tax_rate, tax_note, unit, status, specifications, key_features, product_images(id, storage_path, alt, sort_order)';
 const CATEGORY_COLUMNS = 'id, name, slug, sort_order, is_active';
 
 interface CategoryRow {
@@ -142,10 +144,13 @@ interface ProductRow {
   unit: string;
   status: ProductStatus;
   specifications: Record<string, unknown> | null;
+  key_features: string[] | null;
   product_images: ImageRow[] | null;
 }
 
+/** A storage path in the photo bucket, or a full web address (photos linked from devgroupsn.com). */
 export function imageUrl(path: string): string {
+  if (/^https?:\/\//.test(path)) return path;
   if (!supabase) return '';
   return supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
 }
@@ -177,6 +182,7 @@ export function productFromRow(r: ProductRow): Product {
     unit: r.unit,
     status: r.status,
     specifications: specs,
+    keyFeatures: r.key_features ?? [],
     images: (r.product_images ?? [])
       .slice()
       .sort((a, b) => a.sort_order - b.sort_order)

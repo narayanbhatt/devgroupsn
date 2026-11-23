@@ -19,6 +19,8 @@ export interface ProductDraft {
   unit: string;
   status: ProductStatus;
   specs: SpecRow[];
+  /** One feature per line. */
+  features: string;
 }
 
 export const EMPTY_DRAFT: ProductDraft = {
@@ -33,6 +35,7 @@ export const EMPTY_DRAFT: ProductDraft = {
   unit: 'piece',
   status: 'draft',
   specs: [],
+  features: '',
 };
 
 export function specsToRows(specs: Record<string, string>): SpecRow[] {
@@ -92,8 +95,17 @@ export function draftToRow(d: ProductDraft): DraftResult {
       unit: d.unit.trim() || 'piece',
       status: d.status,
       specifications: rowsToSpecs(d.specs),
+      key_features: linesToList(d.features),
     },
   };
+}
+
+/** Non-empty trimmed lines, e.g. the key features box. */
+export function linesToList(text: string): string[] {
+  return text
+    .split('\n')
+    .map((l) => l.replace(/^[-•*]\s*/, '').trim())
+    .filter(Boolean);
 }
 
 /** Turns a category name into its URL-safe slug, e.g. "Street Lights" -> "street-lights". */

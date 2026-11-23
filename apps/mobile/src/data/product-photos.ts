@@ -64,6 +64,8 @@ export async function removeProductPhoto(imageId: string, path: string): Promise
   const { error } = await db.from('product_images').delete().eq('id', imageId);
   if (error) throw new Error('Could not remove the photo.');
   // The row is what customers see; a leftover file is harmless if this fails.
+  // Photos linked from the website have no file in our storage.
+  if (/^https?:\/\//.test(path)) return;
   await db.storage.from(IMAGE_BUCKET).remove([path]);
 }
 
