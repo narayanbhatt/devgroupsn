@@ -1,19 +1,15 @@
-import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { ProductCard } from '@/components/product';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui';
-import { fetchCategories, fetchProducts, type Category, type Product } from '@/data/catalogue';
-import { formatINR } from '@/lib/format';
+import { fetchCatalogue, type Category } from '@/data/catalogue';
 import { useAsync } from '@/lib/use-async';
 import { colors, minTouch, radius, spacing, type } from '@/theme/tokens';
 
 /** C03 Catalog: search, category filter, product cards (§11). */
 export default function CatalogScreen() {
-  const { state, retry } = useAsync(async () => {
-    const [categories, products] = await Promise.all([fetchCategories(), fetchProducts()]);
-    return { categories, products };
-  });
+  const { state, retry } = useAsync(fetchCatalogue);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<string | null>(null);
 
@@ -21,7 +17,9 @@ export default function CatalogScreen() {
     if (state.status !== 'success') return [];
     const q = query.trim().toLowerCase();
     return state.data.products.filter(
-      (p) => (!category || p.categoryId === category) && (!q || p.name.toLowerCase().includes(q)),
+      (p) =>
+        (!category || p.categoryId === category) &&
+        (!q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)),
     );
   }, [state, query, category]);
 
@@ -30,8 +28,17 @@ export default function CatalogScreen() {
 
   const catName = (id: string) => state.data.categories.find((c) => c.id === id)?.name ?? '';
 
+  const offline = state.data.offlineSince;
+
   return (
     <View style={styles.root}>
+      {offline && (
+        <View style={styles.offline} accessibilityRole="alert">
+          <Text style={styles.offlineText}>
+            You’re offline. Showing the catalogue saved on {new Date(offline).toLocaleDateString('en-IN')}.
+          </Text>
+        </View>
+      )}
       <View style={styles.header}>
         <TextInput
           value={query}
@@ -54,6 +61,7 @@ export default function CatalogScreen() {
         contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, flexGrow: 1 }}
         ListEmptyComponent={<EmptyState title="No products found" hint="Try another search or category." />}
         renderItem={({ item }) => <ProductCard product={item} categoryName={catName(item.categoryId)} />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={retry} colors={[colors.brandSecondary]} />}
       />
     </View>
   );
@@ -67,28 +75,6 @@ function Chip({ label, selected, onPress }: { label: string; selected: boolean; 
       onPress={onPress}
       style={[styles.chip, selected && styles.chipSelected]}>
       <Text style={[styles.chipLabel, selected && { color: colors.textOnBrand }]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function ProductCard({ product, categoryName }: { product: Product; categoryName: string }) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={() => router.push({ pathname: '/product/[id]', params: { id: product.id } })}
-      style={({ pressed }) => [styles.card, pressed && { opacity: 0.9 }]}>
-      <View style={styles.imagePlaceholder}>
-        <Text style={styles.imageText}>{categoryName}</Text>
-      </View>
-      <Text style={[type.h3, { color: colors.textPrimary }]}>{product.name}</Text>
-      <Text style={[type.caption, { color: colors.textSecondary }]}>{categoryName}</Text>
-      {product.listedPrice != null ? (
-        <Text style={[type.body, { color: colors.textPrimary, fontWeight: '600', marginTop: spacing.xs }]}>
-          {formatINR(product.listedPrice)} <Text style={{ color: colors.textSecondary, fontWeight: '400' }}>{product.taxNote}</Text>
-        </Text>
-      ) : (
-        <Text style={[type.body, { color: colors.textSecondary }]}>Price on quotation</Text>
-      )}
     </Pressable>
   );
 }
@@ -123,21 +109,6 @@ const styles = StyleSheet.create({
   },
   chipSelected: { backgroundColor: colors.brandSecondary, borderColor: colors.brandSecondary },
   chipLabel: { ...type.body, color: colors.textPrimary },
-  card: {
-    backgroundColor: colors.surfacePrimary,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
-    gap: spacing.xs,
-  },
-  imagePlaceholder: {
-    height: 120,
-    borderRadius: radius.md,
-    backgroundColor: colors.brandPrimary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
-  },
-  imageText: { ...type.caption, color: colors.textOnBrand, letterSpacing: 1, textTransform: 'uppercase' },
+  offline: { backgroundColor: '#FFF4E0', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  offlineText: { ...type.caption, color: colors.warning, fontWeight: '600' },
 });

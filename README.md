@@ -62,6 +62,8 @@ The development project (`cprqpquftrqvohbfngvf`) already has every migration and
 6. Supabase's built-in email sender only reaches project team members and a few emails an hour. Before real customers sign up, add your own SMTP sender under Authentication > Emails > SMTP settings.
 7. Make the first super admin after they sign up in the app: `insert into public.staff_roles (user_id, role) select id, 'super_admin' from public.profiles where email = '<their email>';` Further staff roles are granted in the app under Staff > Settings.
 
+Product photos live in the public `product-images` storage bucket (created by a migration). Catalogue admins add them from the product editor in the app (Staff > Catalog); the app shrinks each photo to at most 1600px before uploading.
+
 Sign in with Google is deferred.
 
 Never put the `service_role` key in the app or in this repository.
