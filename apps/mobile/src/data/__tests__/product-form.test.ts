@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { draftToRow, EMPTY_DRAFT, fitWithin, rowsToSpecs, slugify, specsToRows } from '@/data/product-form';
+import { draftToRow, EMPTY_DRAFT, fitWithin, linesToList, rowsToSpecs, slugify, specsToRows } from '@/data/product-form';
 import { base64ToBytes } from '@/lib/base64';
 
 const valid = { ...EMPTY_DRAFT, name: ' Street Light 45W ', sku: 'lgt-street-45w', categoryId: 'c1', price: '750' };
@@ -69,5 +69,11 @@ describe('base64ToBytes', () => {
     expect(Array.from(base64ToBytes('TWE='))).toEqual([77, 97]);
     expect(Array.from(base64ToBytes('TQ=='))).toEqual([77]);
     expect(Array.from(base64ToBytes('/9j/'))).toEqual([255, 216, 255]);
+  });
+});
+
+describe('linesToList', () => {
+  it('keeps non-empty lines and drops bullets', () => {
+    expect(linesToList('- IP65 weatherproof\n\n• 45W LED \n')).toEqual(['IP65 weatherproof', '45W LED']);
   });
 });
