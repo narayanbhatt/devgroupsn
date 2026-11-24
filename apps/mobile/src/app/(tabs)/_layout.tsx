@@ -4,6 +4,7 @@ import type { ComponentProps } from 'react';
 import { router } from 'expo-router';
 import { Pressable, Text, View, type ColorValue } from 'react-native';
 
+import { SwipeTabs } from '@/components/swipe-tabs';
 import { useBasket } from '@/lib/basket';
 
 import { colors, type as typo } from '@/theme/tokens';
@@ -48,18 +49,19 @@ function BasketButton() {
   );
 }
 
-/** Customer bottom navigation: Home | Catalog | Orders | Chat | Profile (§5.1). */
+/** Customer bottom navigation: Catalog | Welcome | Orders | Chat | Profile. Swipe sideways to move between them. */
 export default function TabsLayout() {
   return (
     <Tabs
+      screenLayout={({ route, children }) => <SwipeTabs route={route.name}>{children}</SwipeTabs>}
       screenOptions={{
         headerStyle: { backgroundColor: colors.brandPrimary },
         headerTintColor: colors.textOnBrand,
         tabBarActiveTintColor: colors.brandSecondary,
         tabBarInactiveTintColor: colors.textSecondary,
       }}>
-      <Tabs.Screen name="index" options={{ title: 'Home', headerTitle: 'DEV GROUP', tabBarIcon: icon('home-outline'), headerRight: BasketButton }} />
-      <Tabs.Screen name="catalog" options={{ title: 'Catalog', tabBarIcon: icon('grid-outline'), headerRight: BasketButton }} />
+      <Tabs.Screen name="index" options={{ title: 'Catalog', headerTitle: 'DEV GROUP', tabBarIcon: icon('grid-outline'), headerRight: BasketButton }} />
+      <Tabs.Screen name="welcome" options={{ title: 'Welcome', tabBarIcon: icon('home-outline'), headerRight: BasketButton }} />
       <Tabs.Screen name="orders" options={{ title: 'Orders', headerTitle: 'Enquiries and orders', tabBarIcon: icon('receipt-outline') }} />
       <Tabs.Screen name="chat" options={{ title: 'Chat', tabBarIcon: icon('chatbubbles-outline') }} />
       <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: icon('person-outline') }} />

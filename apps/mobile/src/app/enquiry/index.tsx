@@ -1,24 +1,28 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import { useRef } from 'react';
 import { Alert, FlatList, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import { CTAButton, EmptyState, SecondaryButton } from '@/components/ui';
 import { estimateBasket } from '@/data/commercial';
 import { useBasket, type BasketItem } from '@/lib/basket';
 import { formatINR } from '@/lib/format';
+import { useKeyboardInset } from '@/lib/keyboard';
 import { colors, minTouch, radius, spacing, type } from '@/theme/tokens';
 
 /** C05 Enquiry basket (§13). Not an order: it becomes an enquiry for a quotation. */
 export default function BasketScreen() {
   const { items, clear } = useBasket();
   const { value, unpriced } = estimateBasket(items);
+  const list = useRef<FlatList<BasketItem>>(null);
+  const { keyboardHeight, onScroll } = useKeyboardInset((y) => list.current?.scrollToOffset({ offset: y, animated: true }));
 
   if (items.length === 0) {
     return (
       <View style={styles.root}>
         <EmptyState title="Your enquiry is empty" hint="Add products from the catalogue, then send them together for one quotation." />
         <View style={{ padding: spacing.lg }}>
-          <CTAButton label="Browse catalogue" onPress={() => router.navigate('/catalog')} />
+          <CTAButton label="Browse catalogue" onPress={() => router.navigate('/')} />
         </View>
       </View>
     );
@@ -27,13 +31,17 @@ export default function BasketScreen() {
   return (
     <View style={styles.root}>
       <FlatList
+        ref={list}
         data={items}
         keyExtractor={(i) => i.productId}
-        contentContainerStyle={{ padding: spacing.lg, gap: spacing.md }}
+        onScroll={onScroll}
+        scrollEventThrottle={32}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.lg + keyboardHeight, gap: spacing.md }}
         renderItem={({ item }) => <Row item={item} />}
         ListFooterComponent={
           <View style={{ gap: spacing.sm, marginTop: spacing.sm }}>
-            <SecondaryButton label="Add more products" onPress={() => router.navigate('/catalog')} />
+            <SecondaryButton label="Add more products" onPress={() => router.navigate('/')} />
             <Pressable
               accessibilityRole="button"
               onPress={() =>

@@ -117,8 +117,8 @@ function Form({ profile, orgs, addresses }: { profile: Profile; orgs: Org[]; add
     setBusy(false);
     if (e) return setError(friendlyError(e));
     clear();
-    router.dismissAll();
-    router.push({ pathname: '/enquiries/[id]', params: { id: data as string, sent: '1' } });
+    // One step back to the enquiry list, so every sent enquiry is listed and a new one starts empty.
+    router.dismissTo({ pathname: '/orders', params: { sent: data as string } });
   }
 
   return (

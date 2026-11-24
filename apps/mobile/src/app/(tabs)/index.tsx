@@ -1,84 +1,114 @@
-import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Body, H1, SectionTitle } from '@/components/ui';
-import { isSupabaseConfigured } from '@/lib/supabase';
+import { ProductCard } from '@/components/product';
+import { EmptyState, ErrorState, LoadingState } from '@/components/ui';
+import { fetchCatalogue, type Category } from '@/data/catalogue';
+import { useAsync } from '@/lib/use-async';
 import { colors, minTouch, radius, spacing, type } from '@/theme/tokens';
 
-const QUICK_ACTIONS: { label: string; go: () => void }[] = [
-  { label: 'New Enquiry', go: () => router.push('/enquiry') },
-  { label: 'View Catalogue', go: () => router.navigate('/catalog') },
-  { label: 'Track Order', go: () => router.navigate('/orders') },
-  { label: 'Chat with DEV', go: () => router.navigate('/chat') },
-];
+/** C03 Catalog: search, category filter, product cards (§11). */
+export default function CatalogScreen() {
+  const { state, retry } = useAsync(fetchCatalogue);
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState<string | null>(null);
 
-/** C02 Home: active commercial activity first, marketing second (§10). */
-export default function HomeScreen() {
+  const visible = useMemo(() => {
+    if (state.status !== 'success') return [];
+    const q = query.trim().toLowerCase();
+    return state.data.products.filter(
+      (p) =>
+        (!category || p.categoryId === category) &&
+        (!q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)),
+    );
+  }, [state, query, category]);
+
+  if (state.status === 'loading') return <LoadingState />;
+  if (state.status === 'error') return <ErrorState message={state.message} onRetry={retry} />;
+
+  const catName = (id: string) => state.data.categories.find((c) => c.id === id)?.name ?? '';
+
+  const offline = state.data.offlineSince;
+
   return (
-    <ScrollView style={styles.root} contentContainerStyle={{ padding: spacing.lg }}>
-      <H1>Hello</H1>
-      <Body muted>Infrastructure products and project services.</Body>
-
-      {!isSupabaseConfigured && (
-        <View style={styles.notice}>
-          <Text style={styles.noticeText}>Demo mode: showing sample catalogue data.</Text>
+    <View style={styles.root}>
+      {offline && (
+        <View style={styles.offline} accessibilityRole="alert">
+          <Text style={styles.offlineText}>
+            You’re offline. Showing the catalogue saved on {new Date(offline).toLocaleDateString('en-IN')}.
+          </Text>
         </View>
       )}
-
-      <SectionTitle>Active quotation</SectionTitle>
-      <View style={styles.card}>
-        <Body muted>No active quotations. Add products to an enquiry to get a quote.</Body>
+      <View style={styles.header}>
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search products and services"
+          placeholderTextColor={colors.textSecondary}
+          style={styles.search}
+          accessibilityLabel="Search catalogue"
+        />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
+          <Chip label="All" selected={category === null} onPress={() => setCategory(null)} />
+          {state.data.categories.map((c: Category) => (
+            <Chip key={c.id} label={c.name} selected={category === c.id} onPress={() => setCategory(c.id)} />
+          ))}
+        </ScrollView>
       </View>
+      <FlatList
+        data={visible}
+        keyExtractor={(p) => p.id}
+        contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, flexGrow: 1 }}
+        ListEmptyComponent={<EmptyState title="No products found" hint="Try another search or category." />}
+        renderItem={({ item }) => <ProductCard product={item} categoryName={catName(item.categoryId)} />}
+        refreshControl={<RefreshControl refreshing={false} onRefresh={retry} colors={[colors.brandSecondary]} />}
+      />
+    </View>
+  );
+}
 
-      <SectionTitle>Active order</SectionTitle>
-      <View style={styles.card}>
-        <Body muted>No active orders yet.</Body>
-      </View>
-
-      <SectionTitle>Quick actions</SectionTitle>
-      <View style={styles.actions}>
-        {QUICK_ACTIONS.map((a) => (
-          <Pressable
-            key={a.label}
-            accessibilityRole="button"
-            onPress={a.go}
-            style={({ pressed }) => [styles.action, pressed && { backgroundColor: colors.surfaceSecondary }]}>
-            <Text style={styles.actionLabel}>{a.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-    </ScrollView>
+function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={[styles.chip, selected && styles.chipSelected]}>
+      <Text style={[styles.chipLabel, selected && { color: colors.textOnBrand }]}>{label}</Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.surfaceSecondary },
-  card: {
-    backgroundColor: colors.surfacePrimary,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+  header: {
     padding: spacing.lg,
-  },
-  notice: {
-    marginTop: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: '#E8F0FB',
-  },
-  noticeText: { ...type.caption, color: colors.info },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  action: {
-    minHeight: minTouch,
-    flexBasis: '48%',
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    paddingBottom: spacing.sm,
+    gap: spacing.md,
     backgroundColor: colors.surfacePrimary,
-    borderRadius: radius.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  search: {
+    minHeight: minTouch,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.md,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    color: colors.textPrimary,
+    backgroundColor: colors.surfaceSecondary,
+    ...type.body,
   },
-  actionLabel: { ...type.body, fontWeight: '600', color: colors.brandPrimary },
+  chip: {
+    minHeight: 36,
+    paddingHorizontal: spacing.lg,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.border,
+    justifyContent: 'center',
+  },
+  chipSelected: { backgroundColor: colors.brandSecondary, borderColor: colors.brandSecondary },
+  chipLabel: { ...type.body, color: colors.textPrimary },
+  offline: { backgroundColor: '#FFF4E0', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
+  offlineText: { ...type.caption, color: colors.warning, fontWeight: '600' },
 });

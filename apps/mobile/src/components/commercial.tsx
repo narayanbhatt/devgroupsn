@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { Tone } from '@/data/commercial';
-import type { Quotation } from '@/data/enquiries';
+import { ENQUIRY_STATUS, formatDate, type Tone } from '@/data/commercial';
+import type { EnquirySummary, Quotation } from '@/data/enquiries';
 import { formatINR } from '@/lib/format';
 import { colors, radius, spacing, type } from '@/theme/tokens';
 
@@ -93,3 +94,24 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: colors.border, marginVertical: spacing.xs },
   kv: { gap: 2 },
 });
+
+/** One sent enquiry in a list; opens its detail. */
+export function EnquiryRow({ item, highlight }: { item: EnquirySummary; highlight?: boolean }) {
+  const s = ENQUIRY_STATUS[item.status];
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => router.push({ pathname: '/enquiries/[id]', params: { id: item.id } })}
+      style={({ pressed }) => [cardStyle, highlight && { borderColor: colors.success, borderWidth: 2 }, pressed && { opacity: 0.9 }]}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm }}>
+        <Text style={[type.body, { color: colors.textPrimary, fontWeight: '700' }]}>{item.number}</Text>
+        <StatusPill label={s.label} tone={s.tone} />
+      </View>
+      {item.projectName ? <Text style={[type.body, { color: colors.textPrimary }]}>{item.projectName}</Text> : null}
+      <Text style={[type.caption, { color: colors.textSecondary }]}>
+        {item.itemCount} product{item.itemCount === 1 ? '' : 's'} · Sent {formatDate(item.submittedAt)}
+        {item.organizationName ? ` · ${item.organizationName}` : ''}
+      </Text>
+    </Pressable>
+  );
+}

@@ -1,12 +1,13 @@
 import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View, type ScrollViewInstance } from 'react-native';
 
 import { ProductCard, StatusBadge } from '@/components/product';
 import { Body, CTAButton, EmptyState, ErrorState, H1, LoadingState, PriceBlock, SecondaryButton, SectionTitle } from '@/components/ui';
 import { fetchProductWithRelated, type Product } from '@/data/catalogue';
 import { useBasket } from '@/lib/basket';
+import { useKeyboardInset } from '@/lib/keyboard';
 import { useAsync } from '@/lib/use-async';
 import { colors, minTouch, radius, spacing, type } from '@/theme/tokens';
 
@@ -14,6 +15,8 @@ import { colors, minTouch, radius, spacing, type } from '@/theme/tokens';
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { state, retry } = useAsync(() => fetchProductWithRelated(id), id);
+  const scroll = useRef<ScrollViewInstance>(null);
+  const { keyboardHeight, onScroll } = useKeyboardInset((y) => scroll.current?.scrollTo({ y, animated: true }));
 
   if (state.status === 'loading') return <LoadingState />;
   if (state.status === 'error') return <ErrorState message={state.message} onRetry={retry} />;
@@ -25,7 +28,13 @@ export default function ProductDetailScreen() {
   return (
     <>
       <Stack.Screen options={{ title: product.name }} />
-      <ScrollView style={styles.root} contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}>
+      <ScrollView
+        ref={scroll}
+        onScroll={onScroll}
+        scrollEventThrottle={32}
+        keyboardShouldPersistTaps="handled"
+        style={styles.root}
+        contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.lg + keyboardHeight, gap: spacing.lg }}>
         <Gallery product={product} />
         <View style={{ gap: spacing.sm }}>
           <H1>{product.name}</H1>
