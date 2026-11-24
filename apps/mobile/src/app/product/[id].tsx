@@ -14,7 +14,8 @@ import { colors, minTouch, radius, spacing, type } from '@/theme/tokens';
 
 /** C04 Product Detail: photos, price, specifications, related products. Primary CTA: Add to Enquiry (§12). */
 export default function ProductDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, preview } = useLocalSearchParams<{ id: string; preview?: string }>();
+  const isPreview = preview === '1';
   const { state, retry } = useAsync(() => fetchProductWithRelated(id), id);
   const scroll = useRef<ScrollViewInstance>(null);
   const { keyboardHeight, onScroll } = useKeyboardInset((y) => scroll.current?.scrollTo({ y, animated: true }));
@@ -28,7 +29,8 @@ export default function ProductDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: product.name }} />
+      <Stack.Screen options={{ title: isPreview ? 'Customer preview' : product.name }} />
+      {isPreview && <PreviewBanner status={product.status} />}
       <ScrollView
         ref={scroll}
         onScroll={onScroll}
@@ -78,12 +80,14 @@ export default function ProductDetailScreen() {
         )}
 
         <View style={{ gap: spacing.sm }}>
-          {available ? (
+          {isPreview ? (
+            <Body muted>Customers see “Add to Enquiry” and “Chat with DEV” here{available ? '' : ' once the product is published'}.</Body>
+          ) : available ? (
             <AddToEnquiry product={product} />
           ) : (
             <Body muted>This product can’t be added to an enquiry right now. Ask us about availability.</Body>
           )}
-          <ChatButton label="Chat with DEV" />
+          {!isPreview && <ChatButton label="Chat with DEV" />}
         </View>
 
         {related.length > 0 && (
@@ -100,6 +104,23 @@ export default function ProductDetailScreen() {
 }
 
 /** Quantity stepper and the primary CTA (§12-13). */
+/** Shown at the top in preview: what this page is and whether customers can see it yet. */
+function PreviewBanner({ status }: { status: Product['status'] }) {
+  const visible = status === 'published' || status === 'temporarily_unavailable';
+  return (
+    <View style={styles.preview} accessibilityLiveRegion="polite">
+      <Text style={[type.caption, { color: colors.textPrimary, fontWeight: '700' }]}>
+        Preview: this is how customers see this product
+      </Text>
+      <Text style={[type.caption, { color: colors.textSecondary }]}>
+        {visible
+          ? 'It’s in the customer catalogue. Shows the last saved version.'
+          : `Customers can’t see it yet because it’s ${status === 'draft' ? 'a draft' : 'archived'}. Shows the last saved version.`}
+      </Text>
+    </View>
+  );
+}
+
 function AddToEnquiry({ product }: { product: Product }) {
   const { items, add } = useBasket();
   const [qty, setQty] = useState('1');
@@ -195,6 +216,14 @@ function Gallery({ product }: { product: Product }) {
 }
 
 const styles = StyleSheet.create({
+  preview: {
+    backgroundColor: '#FFF4E5',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5D9B0',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    gap: 2,
+  },
   root: { flex: 1, backgroundColor: colors.surfacePrimary },
   hero: { height: 260, borderRadius: radius.lg, backgroundColor: colors.surfaceSecondary },
   heroEmpty: { backgroundColor: colors.brandPrimary, alignItems: 'center', justifyContent: 'center' },

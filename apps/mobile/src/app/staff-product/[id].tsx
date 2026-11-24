@@ -65,6 +65,8 @@ function toDraft(p: Product | null, categories: Category[]): ProductDraft {
 
 function Editor({ categories, product }: { categories: Category[]; product: Product | null }) {
   const [draft, setDraft] = useState<ProductDraft>(() => toDraft(product, categories));
+  const [saved, setSaved] = useState<ProductDraft>(draft);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(saved);
   const [images, setImages] = useState<ProductImage[]>(product?.images ?? []);
   const [busy, setBusy] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
@@ -91,6 +93,7 @@ function Editor({ categories, product }: { categories: Category[]; product: Prod
       router.replace({ pathname: '/staff-product/[id]', params: { id: data.id } });
       return;
     }
+    setSaved(draft);
     setNotice('Saved. Customers see the change the next time their catalogue loads.');
   }
 
@@ -145,13 +148,39 @@ function Editor({ categories, product }: { categories: Category[]; product: Prod
     Alert.alert('Photo', index === 0 ? 'This is the cover photo customers see first.' : undefined, buttons);
   }
 
+  function onPreview() {
+    const open = () => router.push({ pathname: '/product/[id]', params: { id: product!.id, preview: '1' } });
+    if (dirty) {
+      Alert.alert('Unsaved changes', 'The preview shows the last saved version. Save first to see your changes.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Preview anyway', onPress: open },
+      ]);
+    } else open();
+  }
+
   function onSpec(i: number, field: 'key' | 'value', v: string) {
     setDraft((d) => ({ ...d, specs: d.specs.map((r, j) => (j === i ? { ...r, [field]: v } : r)) }));
   }
 
   return (
     <>
-      <Stack.Screen options={{ title: product ? 'Edit product' : 'New product' }} />
+      <Stack.Screen
+        options={{
+          title: product ? 'Edit product' : 'New product',
+          headerRight: product
+            ? () => (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Preview as a customer"
+                  onPress={onPreview}
+                  hitSlop={8}
+                  style={{ paddingHorizontal: spacing.md }}>
+                  <Text style={[type.body, { color: colors.textOnBrand, fontWeight: '600' }]}>Preview</Text>
+                </Pressable>
+              )
+            : undefined,
+        }}
+      />
       <FormScreen>
         <FormError message={error} />
         <FormNotice message={notice} />
@@ -256,6 +285,7 @@ function Editor({ categories, product }: { categories: Category[]; product: Prod
         )}
 
         <CTAButton label={busy ? 'Saving…' : product ? 'Save changes' : 'Create product'} onPress={onSave} disabled={busy} />
+        {product && <SecondaryButton label="Preview as a customer" onPress={onPreview} />}
       </FormScreen>
     </>
   );
