@@ -4,6 +4,7 @@ import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'r
 
 import { cardStyle, KeyValue, StatusPill } from '@/components/commercial';
 import { FormError, TextField } from '@/components/form';
+import { DocumentsSection } from '@/components/orders';
 import { Body, CTAButton, EmptyState, ErrorState, H1, LoadingState, SecondaryButton, SectionTitle } from '@/components/ui';
 import { ENQUIRY_STATUS_STAFF, formatDate, QUOTATION_STATUS_STAFF, type EnquiryStatus } from '@/data/commercial';
 import { EVENT_LABEL, fetchEnquiry, type Enquiry } from '@/data/enquiries';
@@ -225,6 +226,17 @@ export default function StaffEnquiryScreen() {
             <KeyValue label="Requirements" value={enquiry.requirements} />
             <KeyValue label="Notes" value={enquiry.notes} />
           </View>
+        </View>
+
+        <View>
+          <SectionTitle>Files</SectionTitle>
+          <DocumentsSection
+            ownerType="enquiry"
+            ownerId={enquiry.id}
+            documents={enquiry.documents}
+            uploadTypes={['PURCHASE_ORDER', 'PROJECT_DOCUMENT', 'OTHER']} staff
+            onChanged={load}
+          />
         </View>
 
         <View>

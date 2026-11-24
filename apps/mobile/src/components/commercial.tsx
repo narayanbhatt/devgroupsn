@@ -36,8 +36,13 @@ export function MoneyRow({ label, amount, strong, minus }: { label: string; amou
   );
 }
 
-/** Line items and totals of a quotation, as the customer sees them (§17). */
-export function QuotationBreakdown({ q }: { q: Quotation }) {
+/** What a breakdown needs: a quotation or the order copied from it. */
+export type Breakdown = Pick<Quotation, 'subtotal' | 'tax' | 'delivery' | 'installation' | 'otherCharges' | 'discount' | 'grandTotal'> & {
+  items: Pick<Quotation['items'][number], 'id' | 'description' | 'quantity' | 'unit' | 'unitPrice' | 'taxRate' | 'lineTotal'>[];
+};
+
+/** Line items and totals of a quotation or order, as the customer sees them (§17). */
+export function QuotationBreakdown({ q }: { q: Breakdown }) {
   return (
     <View style={styles.card}>
       {q.items.map((i) => (
