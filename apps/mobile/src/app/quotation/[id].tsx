@@ -1,10 +1,11 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
 import { QuotationBreakdown, StatusPill } from '@/components/commercial';
 import { FormError, TextField } from '@/components/form';
 import { OrderForQuotation, QuotationPdfButton } from '@/components/orders';
+import { ChatButton } from '@/components/chat';
 import { Body, CTAButton, ErrorState, H1, LoadingState, SecondaryButton, SectionTitle } from '@/components/ui';
 import { canAnswer, formatDate, QUOTATION_STATUS } from '@/data/commercial';
 import { fetchQuotation, type Quotation } from '@/data/enquiries';
@@ -136,7 +137,7 @@ function Answer({ q, onChanged }: { q: Quotation; onChanged: () => void }) {
         {expiredNow && <Body muted>This quotation has expired. Ask us for an updated one in Chat.</Body>}
         {q.status === 'converted' && <OrderForQuotation quotationId={q.id} />}
         <QuotationPdfButton quotationId={q.id} />
-        <SecondaryButton label="Chat with DEV" onPress={() => router.navigate('/chat')} />
+        <ChatButton label="Chat with DEV" kind="enquiry" refId={q.enquiryId} />
       </ScrollView>
     </>
   );

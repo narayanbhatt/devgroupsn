@@ -5,7 +5,8 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { cardStyle, KeyValue, StatusPill } from '@/components/commercial';
 import { FormNotice } from '@/components/form';
 import { DocumentsSection } from '@/components/orders';
-import { Body, CTAButton, EmptyState, ErrorState, H1, LoadingState, SecondaryButton, SectionTitle } from '@/components/ui';
+import { ChatButton } from '@/components/chat';
+import { Body, CTAButton, EmptyState, ErrorState, H1, LoadingState, SectionTitle } from '@/components/ui';
 import { canAnswer, ENQUIRY_STATUS, formatDate, QUOTATION_STATUS } from '@/data/commercial';
 import { EVENT_LABEL, fetchEnquiry, type Enquiry } from '@/data/enquiries';
 import { CUSTOMER_DOCUMENT_TYPES } from '@/data/order-rules';
@@ -151,7 +152,7 @@ export default function EnquiryScreen() {
         </View>
       </View>
 
-      <SecondaryButton label="Chat with DEV" onPress={() => router.navigate('/chat')} />
+      <ChatButton label="Chat with DEV about this enquiry" kind="enquiry" refId={enquiry.id} />
       {CANCELLABLE.has(enquiry.status) && (
         <Pressable accessibilityRole="button" onPress={onCancel} style={{ alignSelf: 'center', padding: spacing.sm }}>
           <Text style={[type.body, { color: colors.error }]}>Cancel enquiry</Text>
