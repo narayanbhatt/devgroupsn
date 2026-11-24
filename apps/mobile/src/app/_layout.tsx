@@ -48,6 +48,7 @@ function RootNavigator() {
         <Stack.Screen name="staff-categories" options={{ title: 'Categories' }} />
         <Stack.Screen name="staff-enquiry/[id]" options={{ title: 'Enquiry' }} />
         <Stack.Screen name="staff-quotation/[id]" options={{ title: 'Quotation' }} />
+        <Stack.Screen name="staff-order/[id]" options={{ title: 'Order' }} />
       </Stack.Protected>
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="product/[id]" options={{ title: 'Product' }} />
@@ -55,6 +56,8 @@ function RootNavigator() {
         <Stack.Screen name="enquiry/details" options={{ title: 'Enquiry details' }} />
         <Stack.Screen name="enquiries/[id]" options={{ title: 'Enquiry' }} />
         <Stack.Screen name="quotation/[id]" options={{ title: 'Quotation' }} />
+        <Stack.Screen name="order/[id]" options={{ title: 'Order' }} />
+        <Stack.Screen name="order-payment/[id]" options={{ title: 'Payment details' }} />
         <Stack.Screen name="profile/edit" options={{ title: 'Personal information' }} />
         <Stack.Screen name="profile/organization" options={{ title: 'Organization' }} />
         <Stack.Screen name="profile/addresses" options={{ title: 'Addresses' }} />

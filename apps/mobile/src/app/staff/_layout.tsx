@@ -13,7 +13,7 @@ function icon(name: IconName) {
   };
 }
 
-/** Staff bottom navigation: Dashboard | Orders | Chat | Catalog | Settings (wireframe §3). */
+/** Staff bottom navigation: Dashboard | Enquiries | Orders | Chat | Catalog | Settings (wireframe §3). */
 export default function StaffTabsLayout() {
   return (
     <Tabs
@@ -24,7 +24,8 @@ export default function StaffTabsLayout() {
         tabBarInactiveTintColor: colors.textSecondary,
       }}>
       <Tabs.Screen name="index" options={{ title: 'Dashboard', headerTitle: 'DEV GROUP · Staff', tabBarIcon: icon('speedometer-outline') }} />
-      <Tabs.Screen name="orders" options={{ title: 'Enquiries', tabBarIcon: icon('receipt-outline') }} />
+      <Tabs.Screen name="orders" options={{ title: 'Enquiries', tabBarIcon: icon('mail-unread-outline') }} />
+      <Tabs.Screen name="order-list" options={{ title: 'Orders', tabBarIcon: icon('receipt-outline') }} />
       <Tabs.Screen name="chat" options={{ title: 'Chat', tabBarIcon: icon('chatbubbles-outline') }} />
       <Tabs.Screen name="catalog" options={{ title: 'Catalog', tabBarIcon: icon('grid-outline') }} />
       <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarIcon: icon('settings-outline') }} />

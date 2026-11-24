@@ -1,4 +1,5 @@
 import type { EnquiryStatus, QuotationStatus } from '@/data/commercial';
+import { fetchDocuments, type DocumentFile } from '@/data/orders';
 import { supabase } from '@/lib/supabase';
 
 export interface EnquiryItem {
@@ -87,6 +88,7 @@ export interface Enquiry extends EnquirySummary {
   items: EnquiryItem[];
   quotations: Quotation[];
   events: CommercialEvent[];
+  documents: DocumentFile[];
 }
 
 const num = (v: unknown) => (v == null ? 0 : Number(v));
@@ -168,15 +170,18 @@ export async function fetchAllEnquiries(): Promise<EnquirySummary[]> {
 }
 
 export async function fetchEnquiry(id: string): Promise<Enquiry | null> {
-  const { data: r, error } = await db()
-    .from('enquiries')
-    .select(
-      `*, enquiry_items(*), customer:profiles!enquiries_customer_id_fkey(full_name, email, customer_type), organization:organizations(name),
-       address:addresses(label, line1, line2, city, state, pincode),
-       quotations(${QUOTATION_COLUMNS}), commercial_events(id, event, note, created_at, quotation_id)`,
-    )
-    .eq('id', id)
-    .maybeSingle();
+  const [{ data: r, error }, documents] = await Promise.all([
+    db()
+      .from('enquiries')
+      .select(
+        `*, enquiry_items(*), customer:profiles!enquiries_customer_id_fkey(full_name, email, customer_type), organization:organizations(name),
+         address:addresses(label, line1, line2, city, state, pincode),
+         quotations(${QUOTATION_COLUMNS}), commercial_events(id, event, note, created_at, quotation_id)`,
+      )
+      .eq('id', id)
+      .maybeSingle(),
+    fetchDocuments('enquiry', id),
+  ]);
   if (error) throw new Error('Unable to load this enquiry.');
   if (!r) return null;
   const a = r.address;
@@ -221,6 +226,7 @@ export async function fetchEnquiry(id: string): Promise<Enquiry | null> {
         quotationId: e.quotation_id as string | null,
       }))
       .sort((x: CommercialEvent, y: CommercialEvent) => x.createdAt.localeCompare(y.createdAt)),
+    documents,
   };
 }
 
@@ -246,4 +252,5 @@ export const EVENT_LABEL: Record<string, string> = {
   APPROVED: 'Quotation approved',
   REJECTED: 'Quotation declined',
   EXPIRED: 'Quotation expired',
+  CONVERTED_TO_ORDER: 'Order placed',
 };

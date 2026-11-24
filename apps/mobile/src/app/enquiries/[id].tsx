@@ -4,9 +4,11 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 
 import { cardStyle, KeyValue, StatusPill } from '@/components/commercial';
 import { FormNotice } from '@/components/form';
+import { DocumentsSection } from '@/components/orders';
 import { Body, CTAButton, EmptyState, ErrorState, H1, LoadingState, SecondaryButton, SectionTitle } from '@/components/ui';
 import { canAnswer, ENQUIRY_STATUS, formatDate, QUOTATION_STATUS } from '@/data/commercial';
 import { EVENT_LABEL, fetchEnquiry, type Enquiry } from '@/data/enquiries';
+import { CUSTOMER_DOCUMENT_TYPES } from '@/data/order-rules';
 import { friendlyError } from '@/lib/errors';
 import { formatINR } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
@@ -119,6 +121,17 @@ export default function EnquiryScreen() {
           <KeyValue label="Tender / procurement reference" value={enquiry.procurementReference} />
           <KeyValue label="Notes" value={enquiry.notes} />
         </View>
+      </View>
+
+      <View>
+        <SectionTitle>Files</SectionTitle>
+        <DocumentsSection
+          ownerType="enquiry"
+          ownerId={enquiry.id}
+          documents={enquiry.documents}
+          uploadTypes={enquiry.status === 'cancelled' ? [] : CUSTOMER_DOCUMENT_TYPES}
+          onChanged={load}
+        />
       </View>
 
       <View>

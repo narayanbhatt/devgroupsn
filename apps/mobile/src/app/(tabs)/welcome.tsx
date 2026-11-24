@@ -3,9 +3,11 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { EnquiryRow } from '@/components/commercial';
+import { OrderRow } from '@/components/orders';
 import { Body, H1, SectionTitle } from '@/components/ui';
 import type { EnquiryStatus } from '@/data/commercial';
 import { fetchMyEnquiries, type EnquirySummary } from '@/data/enquiries';
+import { fetchMyOrders, type OrderSummary } from '@/data/orders';
 import { useAuth } from '@/lib/auth';
 import { useBasket } from '@/lib/basket';
 import { isSupabaseConfigured } from '@/lib/supabase';
@@ -18,6 +20,7 @@ export default function WelcomeScreen() {
   const { profile } = useAuth();
   const { count } = useBasket();
   const [enquiries, setEnquiries] = useState<EnquirySummary[] | null>(null);
+  const [orders, setOrders] = useState<OrderSummary[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -25,6 +28,9 @@ export default function WelcomeScreen() {
       let cancelled = false;
       fetchMyEnquiries(profile.id)
         .then((l) => !cancelled && setEnquiries(l))
+        .catch(() => undefined);
+      fetchMyOrders()
+        .then((l) => !cancelled && setOrders(l))
         .catch(() => undefined);
       return () => {
         cancelled = true;
@@ -35,6 +41,7 @@ export default function WelcomeScreen() {
   const open = (enquiries ?? []).filter((e) => !CLOSED.includes(e.status));
   const quoted = open.filter((e) => e.status === 'quoted');
   const others = open.filter((e) => e.status !== 'quoted');
+  const activeOrders = orders.filter((o) => o.status !== 'completed' && o.status !== 'cancelled');
   const firstName = profile?.full_name?.split(' ')[0];
 
   const actions: { label: string; go: () => void }[] = [
@@ -91,10 +98,14 @@ export default function WelcomeScreen() {
         </View>
       )}
 
-      <SectionTitle>Active order</SectionTitle>
-      <View style={styles.card}>
-        <Body muted>No active orders yet.</Body>
-      </View>
+      <SectionTitle>Active orders</SectionTitle>
+      {activeOrders.length > 0 ? (
+        activeOrders.slice(0, 3).map((o) => <OrderRow key={o.id} item={o} />)
+      ) : (
+        <View style={styles.card}>
+          <Body muted>No active orders yet.</Body>
+        </View>
+      )}
 
       <SectionTitle>Quick actions</SectionTitle>
       <View style={styles.actions}>
