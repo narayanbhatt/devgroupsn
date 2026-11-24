@@ -43,7 +43,8 @@ export default function ConversationScreen() {
   const [file, setFile] = useState<PickedFile | null>(null);
   const [sending, setSending] = useState(false);
   const { keyboardHeight } = useKeyboardInset();
-  // The app draws under Android's navigation buttons; keep the message box above them.
+  // The screen already sits above the navigation buttons (root layout); the keyboard covers
+  // them too, so only the rest of its height needs adding.
   const { bottom: navBar } = useSafeAreaInsets();
   const live = useRef(true);
 
@@ -153,7 +154,7 @@ export default function ConversationScreen() {
           });
 
   return (
-    <View style={[styles.root, { paddingBottom: keyboardHeight > 0 ? keyboardHeight : navBar }]}>
+    <View style={[styles.root, { paddingBottom: Math.max(0, keyboardHeight - navBar) }]}>
       <Stack.Screen options={{ title: header.title }} />
       {header.subtitle && (
         <Pressable

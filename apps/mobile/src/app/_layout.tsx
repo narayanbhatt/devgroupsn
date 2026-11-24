@@ -1,11 +1,14 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { BasketProvider } from '@/lib/basket';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { colors, spacing, type } from '@/theme/tokens';
+
+const TABS_CONTENT = { backgroundColor: colors.surfaceSecondary, paddingBottom: 0 };
 
 export default function RootLayout() {
   return (
@@ -20,6 +23,9 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const { initializing, session, recoveryPending, isStaff, staffView } = useAuth();
+  // The app draws edge to edge on Android, so keep every pushed screen's content above the
+  // on-screen navigation buttons. The tab groups already sit above them via their tab bar.
+  const { bottom } = useSafeAreaInsets();
 
   if (initializing) return <Splash />;
 
@@ -32,7 +38,7 @@ function RootNavigator() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.brandPrimary },
         headerTintColor: colors.textOnBrand,
-        contentStyle: { backgroundColor: colors.surfaceSecondary },
+        contentStyle: { backgroundColor: colors.surfaceSecondary, paddingBottom: bottom },
       }}>
       {/* Email links land here whether or not anyone is signed in yet. */}
       <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
@@ -40,10 +46,10 @@ function RootNavigator() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       </Stack.Protected>
       <Stack.Protected guard={signedIn && !showStaff}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, contentStyle: TABS_CONTENT }} />
       </Stack.Protected>
       <Stack.Protected guard={showStaff}>
-        <Stack.Screen name="staff" options={{ headerShown: false }} />
+        <Stack.Screen name="staff" options={{ headerShown: false, contentStyle: TABS_CONTENT }} />
         <Stack.Screen name="staff-product/[id]" options={{ title: 'Product' }} />
         <Stack.Screen name="staff-categories" options={{ title: 'Categories' }} />
         <Stack.Screen name="staff-enquiry/[id]" options={{ title: 'Enquiry' }} />
