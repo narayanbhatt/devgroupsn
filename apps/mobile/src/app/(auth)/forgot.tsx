@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { FormError, FormScreen, TextField } from '@/components/form';
 import { Body, CTAButton } from '@/components/ui';
 import { friendlyError } from '@/lib/errors';
+import { authRedirectUrl } from '@/lib/auth-link';
 import { supabase } from '@/lib/supabase';
 import { isEmail } from '@/lib/validation';
 
@@ -16,7 +17,7 @@ export default function ForgotPasswordScreen() {
     if (!isEmail(email)) return setError('Enter a valid email address.');
     setBusy(true);
     setError(null);
-    const { error: e } = await supabase!.auth.resetPasswordForEmail(email.trim());
+    const { error: e } = await supabase!.auth.resetPasswordForEmail(email.trim(), { redirectTo: authRedirectUrl() });
     setBusy(false);
     if (e) return setError(friendlyError(e));
     router.push({ pathname: '/verify', params: { email: email.trim(), kind: 'recovery' } });

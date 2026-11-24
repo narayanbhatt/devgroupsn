@@ -5,6 +5,7 @@ import { FormError, FormNotice, FormScreen, LinkButton, TextField } from '@/comp
 import { Body, CTAButton } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
+import { authRedirectUrl } from '@/lib/auth-link';
 import { supabase } from '@/lib/supabase';
 import { isOtp } from '@/lib/validation';
 
@@ -37,15 +38,15 @@ export default function VerifyScreen() {
     setError(null);
     const { error: e } =
       kind === 'recovery'
-        ? await supabase!.auth.resetPasswordForEmail(email)
-        : await supabase!.auth.resend({ type: 'signup', email });
+        ? await supabase!.auth.resetPasswordForEmail(email, { redirectTo: authRedirectUrl() })
+        : await supabase!.auth.resend({ type: 'signup', email, options: { emailRedirectTo: authRedirectUrl() } });
     if (e) return setError(friendlyError(e));
     setNotice('We sent a new code.');
   }
 
   return (
     <FormScreen>
-      <Body>We sent a 6-digit code to {email}. Enter it below.</Body>
+      <Body>We sent an email to {email}. Tap the link in it on this phone, or enter the 6-digit code if it has one.</Body>
       <FormNotice message={notice} />
       <FormError message={error} />
       <TextField

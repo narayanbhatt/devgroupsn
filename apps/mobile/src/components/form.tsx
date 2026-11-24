@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -8,18 +8,25 @@ import {
   Text,
   TextInput,
   View,
+  type ScrollViewInstance,
   type TextInputProps,
 } from 'react-native';
 
+import { useKeyboardInset } from '@/lib/keyboard';
 import { colors, minTouch, radius, spacing, type } from '@/theme/tokens';
 
-/** Scrollable form page that stays clear of the keyboard. */
+/** Scrollable form page that stays clear of the keyboard, so every field can scroll above it. */
 export function FormScreen({ children }: { children: ReactNode }) {
+  const ref = useRef<ScrollViewInstance>(null);
+  const { keyboardHeight, onScroll } = useKeyboardInset((y) => ref.current?.scrollTo({ y, animated: true }));
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
+        ref={ref}
+        onScroll={onScroll}
+        scrollEventThrottle={32}
         style={{ flex: 1, backgroundColor: colors.surfacePrimary }}
-        contentContainerStyle={{ padding: spacing.xl, gap: spacing.lg, flexGrow: 1 }}
+        contentContainerStyle={{ padding: spacing.xl, paddingBottom: spacing.xl + keyboardHeight, gap: spacing.lg, flexGrow: 1 }}
         keyboardShouldPersistTaps="handled">
         {children}
       </ScrollView>

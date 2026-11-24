@@ -6,6 +6,7 @@ import { FormError, FormNotice, FormScreen, LinkButton, TextField } from '@/comp
 import { CTAButton } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
+import { authRedirectUrl } from '@/lib/auth-link';
 import { supabase } from '@/lib/supabase';
 import { isEmail } from '@/lib/validation';
 
@@ -26,7 +27,7 @@ export default function SignInScreen() {
     setBusy(false);
     if (e) {
       if (e.message.toLowerCase().includes('email not confirmed')) {
-        await supabase!.auth.resend({ type: 'signup', email: email.trim() });
+        await supabase!.auth.resend({ type: 'signup', email: email.trim(), options: { emailRedirectTo: authRedirectUrl() } });
         router.push({ pathname: '/verify', params: { email: email.trim(), kind: 'signup' } });
         return;
       }

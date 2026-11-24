@@ -10,5 +10,8 @@ for f in migrations/*.sql; do
   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f "$f"
 done
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -f seed.sql
-psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -o /dev/null -f tests/rls_test.sql
+for t in tests/*_test.sql; do
+  echo "running $t"
+  psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -o /dev/null -f "$t"
+done
 echo "all database tests passed"
