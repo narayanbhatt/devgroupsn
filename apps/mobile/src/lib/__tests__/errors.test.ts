@@ -10,6 +10,11 @@ describe('friendlyError', () => {
     expect(friendlyError({ message: 'User already registered' })).toMatch(/already exists/);
   });
 
+  it('explains the hourly email limit separately from other rate limits', () => {
+    expect(friendlyError({ message: 'email rate limit exceeded', code: 'over_email_send_rate_limit' })).toMatch(/last hour/);
+    expect(friendlyError(new Error('Request rate limit reached'))).toMatch(/wait a minute/);
+  });
+
   it('never shows raw database errors', () => {
     const msg = friendlyError(new Error('duplicate key value violates unique constraint "products_sku_key"'));
     expect(msg).toBe('Something went wrong. Please try again.');

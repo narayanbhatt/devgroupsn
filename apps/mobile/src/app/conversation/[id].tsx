@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ErrorState, LoadingState } from '@/components/ui';
 import {
@@ -42,6 +43,9 @@ export default function ConversationScreen() {
   const [file, setFile] = useState<PickedFile | null>(null);
   const [sending, setSending] = useState(false);
   const { keyboardHeight } = useKeyboardInset();
+  // The screen already sits above the navigation buttons (root layout); the keyboard covers
+  // them too, so only the rest of its height needs adding.
+  const { bottom: navBar } = useSafeAreaInsets();
   const live = useRef(true);
 
   // Load the chat, its newest messages, and the name to show at the top.
@@ -150,7 +154,7 @@ export default function ConversationScreen() {
           });
 
   return (
-    <View style={[styles.root, { paddingBottom: keyboardHeight }]}>
+    <View style={[styles.root, { paddingBottom: Math.max(0, keyboardHeight - navBar) }]}>
       <Stack.Screen options={{ title: header.title }} />
       {header.subtitle && (
         <Pressable
@@ -264,7 +268,9 @@ function Bubble({ m, mine, staffView, customerId }: { m: ChatMessage; mine: bool
           {m.body}
         </Text>
       ) : null}
-      <Text style={[type.caption, { alignSelf: 'flex-end', color: mine ? 'rgba(255,255,255,0.75)' : colors.textSecondary }]}>
+      <Text
+        numberOfLines={1}
+        style={[type.caption, { alignSelf: 'flex-end', color: mine ? 'rgba(255,255,255,0.75)' : colors.textSecondary }]}>
         {timeLabel(m.createdAt)}
       </Text>
     </View>
@@ -282,7 +288,8 @@ const styles = StyleSheet.create({
   },
   empty: { flex: 1, justifyContent: 'center', padding: spacing.xl },
   day: { ...type.caption, color: colors.textSecondary, textAlign: 'center', marginVertical: spacing.sm, fontWeight: '600' },
-  bubble: { maxWidth: '82%', borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: 4 },
+  // minWidth keeps the time from being clipped in very short messages on some phones.
+  bubble: { maxWidth: '82%', minWidth: 104, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, gap: 4 },
   mine: { alignSelf: 'flex-end', backgroundColor: colors.brandPrimary, borderBottomRightRadius: radius.sm },
   theirs: {
     alignSelf: 'flex-start',
