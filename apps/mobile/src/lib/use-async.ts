@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type State<T> =
   | { status: 'loading' }
@@ -34,5 +35,22 @@ export function useAsync<T>(load: () => Promise<T>, key = '') {
     setAttempt((n) => n + 1);
   }, []);
 
-  return { state, retry };
+  /** Loads again in the background, keeping what's on screen until the new data arrives. */
+  const refresh = useCallback(() => setAttempt((n) => n + 1), []);
+
+  return { state, retry, refresh };
+}
+
+/** Reloads when the person comes back to a screen, so it never shows a stale status. */
+export function useRefreshOnFocus(refresh: () => void) {
+  const first = useRef(true);
+  useFocusEffect(
+    useCallback(() => {
+      if (first.current) {
+        first.current = false;
+        return;
+      }
+      refresh();
+    }, [refresh]),
+  );
 }

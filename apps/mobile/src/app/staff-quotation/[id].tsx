@@ -18,7 +18,7 @@ import { fetchQuotation, type Quotation } from '@/data/enquiries';
 import { hasRole, useAuth } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
 import { supabase } from '@/lib/supabase';
-import { useAsync } from '@/lib/use-async';
+import { useAsync, useRefreshOnFocus } from '@/lib/use-async';
 import { colors, spacing, type } from '@/theme/tokens';
 
 /** A quotation as staff see it: an editor while it's a draft, read-only once sent (§16, §47). */
@@ -26,7 +26,8 @@ export default function StaffQuotationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { staffRoles } = useAuth();
   const [attempt, setAttempt] = useState(0);
-  const { state, retry } = useAsync(() => fetchQuotation(id), `${id}:${attempt}`);
+  const { state, retry, refresh } = useAsync(() => fetchQuotation(id), `${id}:${attempt}`);
+  useRefreshOnFocus(refresh);
 
   if (state.status === 'loading') return <LoadingState />;
   if (state.status === 'error') return <ErrorState message={state.message} onRetry={retry} />;

@@ -11,14 +11,15 @@ import { fetchQuotation, type Quotation } from '@/data/enquiries';
 import { friendlyError } from '@/lib/errors';
 import { formatINR } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
-import { useAsync } from '@/lib/use-async';
+import { useAsync, useRefreshOnFocus } from '@/lib/use-async';
 import { colors, spacing } from '@/theme/tokens';
 
 /** C06 Quotation (§17): lines, totals, validity; approve, ask for a revision, or decline. */
 export default function QuotationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [attempt, setAttempt] = useState(0);
-  const { state, retry } = useAsync(() => fetchQuotation(id), `${id}:${attempt}`);
+  const { state, retry, refresh } = useAsync(() => fetchQuotation(id), `${id}:${attempt}`);
+  useRefreshOnFocus(refresh);
 
   // Opening the quotation tells DEV Group it has been seen.
   useEffect(() => {
