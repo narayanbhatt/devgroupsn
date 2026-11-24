@@ -4,7 +4,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { cardStyle, MoneyRow, QuotationBreakdown, StatusPill } from '@/components/commercial';
 import { FormError, FormNotice, FormScreen, TextField } from '@/components/form';
-import { OrderForQuotation, QuotationPdfButton } from '@/components/orders';
+import { CreateOrderButton, OrderForQuotation, QuotationPdfButton } from '@/components/orders';
 import { Body, CTAButton, ErrorState, H1, LoadingState, SecondaryButton, SectionTitle } from '@/components/ui';
 import {
   formatDate,
@@ -52,34 +52,13 @@ export default function StaffQuotationScreen() {
         <QuotationBreakdown q={q} />
         {q.notes ? <Body>{q.notes}</Body> : null}
         {q.terms ? <Body muted>{q.terms}</Body> : null}
-        {q.status === 'approved' && hasRole(staffRoles, 'order_manager') && <CreateOrder quotationId={q.id} />}
+        {q.status === 'approved' && hasRole(staffRoles, 'order_manager') && <CreateOrderButton quotationId={q.id} />}
         {q.status === 'converted' && <OrderForQuotation quotationId={q.id} staff />}
         <QuotationPdfButton quotationId={q.id} />
         <Body muted>A sent quotation can’t be changed. To change prices, create a revision from the enquiry.</Body>
       </FormScreen>
     </>
   );
-}
-
-/** Turns the approved quotation into an order (§18). */
-function CreateOrder({ quotationId }: { quotationId: string }) {
-  const [busy, setBusy] = useState(false);
-  function onCreate() {
-    Alert.alert('Create the order?', 'The order keeps these prices and lines. The customer can then send payment details.', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Create order',
-        onPress: async () => {
-          setBusy(true);
-          const { data, error } = await supabase!.rpc('create_order', { q: quotationId });
-          setBusy(false);
-          if (error) return Alert.alert('Could not create the order', friendlyError(error));
-          router.replace({ pathname: '/staff-order/[id]', params: { id: data as string } });
-        },
-      },
-    ]);
-  }
-  return <CTAButton label={busy ? 'Creating…' : 'Create order'} onPress={onCreate} disabled={busy} />;
 }
 
 interface Line {

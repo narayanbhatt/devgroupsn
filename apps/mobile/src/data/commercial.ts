@@ -84,7 +84,7 @@ export const ENQUIRY_STATUS_STAFF: Record<EnquiryStatus, string> = {
   quote_preparation: 'Quote in preparation',
   quoted: 'Quoted',
   revision_requested: 'Revision requested',
-  approved: 'Approved',
+  approved: 'Approved, create order',
   converted_to_order: 'Converted to order',
   rejected: 'Rejected',
   cancelled: 'Cancelled by customer',

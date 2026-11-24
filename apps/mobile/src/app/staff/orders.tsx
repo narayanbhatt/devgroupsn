@@ -16,21 +16,23 @@ const FILTERS: { value: Filter; label: string }[] = [
   { value: 'all', label: 'All' },
 ];
 const WITH_CUSTOMER: EnquiryStatus[] = ['quoted'];
+// Approved enquiries still need the team to create the order.
+const TO_DO: EnquiryStatus[] = [...OPEN_FOR_STAFF, 'approved'];
 
 const TONE: Partial<Record<EnquiryStatus, Tone>> = {
   submitted: 'action',
   revision_requested: 'action',
   requirement_clarification: 'warning',
   quoted: 'info',
-  approved: 'success',
+  approved: 'action',
   converted_to_order: 'success',
 };
 
 function matches(f: Filter, s: EnquiryStatus) {
   if (f === 'all') return true;
-  if (f === 'open') return OPEN_FOR_STAFF.includes(s);
+  if (f === 'open') return TO_DO.includes(s);
   if (f === 'quoted') return WITH_CUSTOMER.includes(s);
-  return !OPEN_FOR_STAFF.includes(s) && !WITH_CUSTOMER.includes(s);
+  return !TO_DO.includes(s) && !WITH_CUSTOMER.includes(s);
 }
 
 /** A02 (enquiry part): every enquiry, newest first, with what needs action on top. */
