@@ -1,13 +1,14 @@
 import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { ProductCard, StatusBadge } from '@/components/product';
 import { Body, CTAButton, EmptyState, ErrorState, H1, LoadingState, PriceBlock, SecondaryButton, SectionTitle } from '@/components/ui';
 import { fetchProductWithRelated, type Product } from '@/data/catalogue';
+import { useBasket } from '@/lib/basket';
 import { useAsync } from '@/lib/use-async';
-import { colors, radius, spacing, type } from '@/theme/tokens';
+import { colors, minTouch, radius, spacing, type } from '@/theme/tokens';
 
 /** C04 Product Detail: photos, price, specifications, related products. Primary CTA: Add to Enquiry (§12). */
 export default function ProductDetailScreen() {
@@ -68,11 +69,7 @@ export default function ProductDetailScreen() {
 
         <View style={{ gap: spacing.sm }}>
           {available ? (
-            // The enquiry basket is the next phase of the build.
-            <CTAButton
-              label="Add to Enquiry"
-              onPress={() => Alert.alert('Coming next', 'The enquiry basket is the next feature being built.')}
-            />
+            <AddToEnquiry product={product} />
           ) : (
             <Body muted>This product can’t be added to an enquiry right now. Ask us about availability.</Body>
           )}
@@ -89,6 +86,58 @@ export default function ProductDetailScreen() {
         )}
       </ScrollView>
     </>
+  );
+}
+
+/** Quantity stepper and the primary CTA (§12-13). */
+function AddToEnquiry({ product }: { product: Product }) {
+  const { items, add } = useBasket();
+  const [qty, setQty] = useState('1');
+  const inBasket = items.find((i) => i.productId === product.id);
+  const n = Math.floor(Number(qty));
+  const valid = Number.isFinite(n) && n > 0;
+
+  function onAdd() {
+    if (!valid) return Alert.alert('Enter a quantity', 'How many do you need?');
+    add(product, n);
+    setQty('1');
+    Alert.alert('Added to your enquiry', `${n} × ${product.name}`, [
+      { text: 'Keep browsing', style: 'cancel' },
+      { text: 'View enquiry', onPress: () => router.push('/enquiry') },
+    ]);
+  }
+
+  const step = (d: number) => setQty(String(Math.max(1, (valid ? n : 1) + d)));
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <View style={styles.qtyRow}>
+        <Text style={[type.body, { color: colors.textSecondary, flex: 1 }]}>
+          Quantity{product.unit !== 'piece' ? ` (${product.unit})` : ''}
+        </Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Decrease quantity" onPress={() => step(-1)} style={styles.qtyBtn}>
+          <Text style={styles.qtyBtnText}>−</Text>
+        </Pressable>
+        <TextInput
+          value={qty}
+          onChangeText={(t) => setQty(t.replace(/[^0-9]/g, '').slice(0, 6))}
+          keyboardType="number-pad"
+          accessibilityLabel="Quantity"
+          style={styles.qtyInput}
+          selectTextOnFocus
+        />
+        <Pressable accessibilityRole="button" accessibilityLabel="Increase quantity" onPress={() => step(1)} style={styles.qtyBtn}>
+          <Text style={styles.qtyBtnText}>+</Text>
+        </Pressable>
+      </View>
+      <CTAButton label="Add to Enquiry" onPress={onAdd} disabled={!valid} />
+      {inBasket && (
+        <Pressable accessibilityRole="link" onPress={() => router.push('/enquiry')}>
+          <Text style={[type.caption, { color: colors.info, textAlign: 'center' }]}>
+            {inBasket.quantity} already in your enquiry · View enquiry
+          </Text>
+        </Pressable>
+      )}
+    </View>
   );
 }
 
@@ -143,6 +192,27 @@ const styles = StyleSheet.create({
   dots: { flexDirection: 'row', justifyContent: 'center', gap: spacing.xs, marginTop: spacing.sm },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.border },
   dotActive: { backgroundColor: colors.brandSecondary, width: 16 },
+  qtyRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  qtyBtn: {
+    width: minTouch,
+    height: minTouch,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  qtyBtnText: { ...type.h3, color: colors.brandPrimary },
+  qtyInput: {
+    width: 72,
+    height: minTouch,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    textAlign: 'center',
+    color: colors.textPrimary,
+    ...type.body,
+  },
   feature: { flexDirection: 'row', gap: spacing.sm },
   featureTick: { ...type.body, color: colors.success, fontWeight: '700' },
   specs: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, marginTop: spacing.sm },

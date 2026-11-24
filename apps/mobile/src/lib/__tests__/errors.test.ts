@@ -15,4 +15,10 @@ describe('friendlyError', () => {
     expect(msg).toBe('Something went wrong. Please try again.');
     expect(friendlyError(new Error('new row violates row-level security policy'))).toMatch(/permission/);
   });
+
+  it('shows the plain-language messages our database functions raise', () => {
+    const e = { code: '22023', message: 'This quotation has already been answered or replaced.' };
+    expect(friendlyError(e)).toBe(e.message);
+    expect(friendlyError({ code: '42501', message: 'permission denied for table quotations' })).toMatch(/permission/);
+  });
 });

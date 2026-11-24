@@ -3,8 +3,14 @@
  * Raw database or API errors are never shown (design doc §48).
  */
 export function friendlyError(e: unknown): string {
-  const msg = (e instanceof Error ? e.message : typeof e === 'object' && e && 'message' in e ? String(e.message) : '')
-    .toLowerCase();
+  const raw = e instanceof Error ? e.message : typeof e === 'object' && e && 'message' in e ? String(e.message) : '';
+  const msg = raw.toLowerCase();
+  const code = typeof e === 'object' && e && 'code' in e ? String((e as { code: unknown }).code) : '';
+
+  // Our own database functions explain the problem in plain words (codes 22023 and 42501).
+  if ((code === '22023' || code === '42501') && raw && !msg.includes('permission denied') && !msg.includes('row-level security')) {
+    return raw;
+  }
 
   if (msg.includes('network request failed') || msg.includes('failed to fetch')) {
     return 'No internet connection. Check your connection and try again.';

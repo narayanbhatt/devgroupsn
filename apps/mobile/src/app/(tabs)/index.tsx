@@ -6,7 +6,7 @@ import { isSupabaseConfigured } from '@/lib/supabase';
 import { colors, minTouch, radius, spacing, type } from '@/theme/tokens';
 
 const QUICK_ACTIONS: { label: string; go: () => void }[] = [
-  { label: 'New Enquiry', go: () => router.navigate('/catalog') },
+  { label: 'New Enquiry', go: () => router.push('/enquiry') },
   { label: 'View Catalogue', go: () => router.navigate('/catalog') },
   { label: 'Track Order', go: () => router.navigate('/orders') },
   { label: 'Chat with DEV', go: () => router.navigate('/chat') },

@@ -3,14 +3,17 @@ import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { AuthProvider, useAuth } from '@/lib/auth';
+import { BasketProvider } from '@/lib/basket';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { colors, spacing, type } from '@/theme/tokens';
 
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <StatusBar style="light" />
-      <RootNavigator />
+      <BasketProvider>
+        <StatusBar style="light" />
+        <RootNavigator />
+      </BasketProvider>
     </AuthProvider>
   );
 }
@@ -41,9 +44,15 @@ function RootNavigator() {
         <Stack.Screen name="staff" options={{ headerShown: false }} />
         <Stack.Screen name="staff-product/[id]" options={{ title: 'Product' }} />
         <Stack.Screen name="staff-categories" options={{ title: 'Categories' }} />
+        <Stack.Screen name="staff-enquiry/[id]" options={{ title: 'Enquiry' }} />
+        <Stack.Screen name="staff-quotation/[id]" options={{ title: 'Quotation' }} />
       </Stack.Protected>
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="product/[id]" options={{ title: 'Product' }} />
+        <Stack.Screen name="enquiry/index" options={{ title: 'Your enquiry' }} />
+        <Stack.Screen name="enquiry/details" options={{ title: 'Enquiry details' }} />
+        <Stack.Screen name="enquiries/[id]" options={{ title: 'Enquiry' }} />
+        <Stack.Screen name="quotation/[id]" options={{ title: 'Quotation' }} />
         <Stack.Screen name="profile/edit" options={{ title: 'Personal information' }} />
         <Stack.Screen name="profile/organization" options={{ title: 'Organization' }} />
         <Stack.Screen name="profile/addresses" options={{ title: 'Addresses' }} />

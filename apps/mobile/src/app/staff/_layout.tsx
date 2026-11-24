@@ -24,7 +24,7 @@ export default function StaffTabsLayout() {
         tabBarInactiveTintColor: colors.textSecondary,
       }}>
       <Tabs.Screen name="index" options={{ title: 'Dashboard', headerTitle: 'DEV GROUP · Staff', tabBarIcon: icon('speedometer-outline') }} />
-      <Tabs.Screen name="orders" options={{ title: 'Orders', tabBarIcon: icon('receipt-outline') }} />
+      <Tabs.Screen name="orders" options={{ title: 'Enquiries', tabBarIcon: icon('receipt-outline') }} />
       <Tabs.Screen name="chat" options={{ title: 'Chat', tabBarIcon: icon('chatbubbles-outline') }} />
       <Tabs.Screen name="catalog" options={{ title: 'Catalog', tabBarIcon: icon('grid-outline') }} />
       <Tabs.Screen name="settings" options={{ title: 'Settings', tabBarIcon: icon('settings-outline') }} />
