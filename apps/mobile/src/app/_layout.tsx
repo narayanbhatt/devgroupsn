@@ -61,6 +61,7 @@ function RootNavigator() {
         <Stack.Screen name="profile/edit" options={{ title: 'Personal information' }} />
         <Stack.Screen name="profile/organization" options={{ title: 'Organization' }} />
         <Stack.Screen name="profile/addresses" options={{ title: 'Addresses' }} />
+        <Stack.Screen name="conversation/[id]" options={{ title: 'Chat' }} />
       </Stack.Protected>
     </Stack>
   );

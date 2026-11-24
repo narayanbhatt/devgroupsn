@@ -4,7 +4,8 @@ import { useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View, type ScrollViewInstance } from 'react-native';
 
 import { ProductCard, StatusBadge } from '@/components/product';
-import { Body, CTAButton, EmptyState, ErrorState, H1, LoadingState, PriceBlock, SecondaryButton, SectionTitle } from '@/components/ui';
+import { ChatButton } from '@/components/chat';
+import { Body, CTAButton, EmptyState, ErrorState, H1, LoadingState, PriceBlock, SectionTitle } from '@/components/ui';
 import { fetchProductWithRelated, type Product } from '@/data/catalogue';
 import { useBasket } from '@/lib/basket';
 import { useKeyboardInset } from '@/lib/keyboard';
@@ -82,7 +83,7 @@ export default function ProductDetailScreen() {
           ) : (
             <Body muted>This product can’t be added to an enquiry right now. Ask us about availability.</Body>
           )}
-          <SecondaryButton label="Chat with DEV" onPress={() => router.navigate('/chat')} />
+          <ChatButton label="Chat with DEV" />
         </View>
 
         {related.length > 0 && (

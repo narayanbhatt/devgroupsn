@@ -2,6 +2,7 @@ import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router
 import { useCallback, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { ChatButton } from '@/components/chat';
 import { cardStyle, KeyValue, StatusPill } from '@/components/commercial';
 import { FormError, TextField } from '@/components/form';
 import { CreateOrderButton, DocumentsSection } from '@/components/orders';
@@ -236,6 +237,8 @@ export default function StaffEnquiryScreen() {
             <KeyValue label="Notes" value={enquiry.notes} />
           </View>
         </View>
+
+        <ChatButton label="Chat with customer about this enquiry" kind="enquiry" refId={enquiry.id} />
 
         <View>
           <SectionTitle>Files</SectionTitle>
