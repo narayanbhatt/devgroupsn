@@ -1,6 +1,7 @@
 import 'react-native-url-polyfill/auto';
 import { createClient, type SupportedStorage } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 /**
  * Only the public URL and anon key are ever embedded in the app (design doc §74).
@@ -48,7 +49,8 @@ const secureStorage: SupportedStorage = {
 export const supabase = isSupabaseConfigured
   ? createClient(url, anonKey, {
       auth: {
-        storage: secureStorage,
+        // SecureStore has no web version; the web build (used for quick previews) keeps the session in the browser.
+        storage: Platform.OS === 'web' ? undefined : secureStorage,
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: false,
