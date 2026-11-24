@@ -5,6 +5,7 @@ import { ChoiceField, FormError, FormScreen, LinkButton, TextField } from '@/com
 import { Body, CTAButton } from '@/components/ui';
 import type { CustomerType } from '@/lib/auth';
 import { friendlyError } from '@/lib/errors';
+import { authRedirectUrl } from '@/lib/auth-link';
 import { supabase } from '@/lib/supabase';
 import { isEmail, isIndianMobile, passwordProblem } from '@/lib/validation';
 
@@ -41,7 +42,11 @@ export default function RegisterScreen() {
     const { data, error } = await supabase!.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { full_name: name.trim(), phone: phone.trim() || null, customer_type: customerType } },
+      options: {
+        data: { full_name: name.trim(), phone: phone.trim() || null, customer_type: customerType },
+        // Tapping the link in the email opens the app and signs in.
+        emailRedirectTo: authRedirectUrl(),
+      },
     });
     setBusy(false);
     if (error) return setFormError(friendlyError(error));

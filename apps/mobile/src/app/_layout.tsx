@@ -34,6 +34,8 @@ function RootNavigator() {
         headerTintColor: colors.textOnBrand,
         contentStyle: { backgroundColor: colors.surfaceSecondary },
       }}>
+      {/* Email links land here whether or not anyone is signed in yet. */}
+      <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       </Stack.Protected>

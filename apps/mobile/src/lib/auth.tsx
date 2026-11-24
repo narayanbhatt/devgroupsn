@@ -1,6 +1,9 @@
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
+import * as Linking from 'expo-linking';
+
+import { parseAuthCallback } from '@/lib/auth-link';
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 export type CustomerType = 'individual' | 'business' | 'government' | 'institution' | 'contractor';
@@ -92,6 +95,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sub.subscription.unsubscribe();
     };
   }, [loadAccount]);
+
+  // Links in sign-up and reset emails open the app with a session in them (see auth-link.ts).
+  useEffect(() => {
+    if (!supabase) return;
+    const handle = async (url: string | null) => {
+      const r = parseAuthCallback(url);
+      if (!r) return;
+      if (r.kind === 'error') return setNotice(r.message);
+      // A reset link signs the person in, but they must choose a new password first.
+      if (r.type === 'recovery') setRecoveryPending(true);
+      const { error } = await supabase!.auth.setSession({ access_token: r.accessToken, refresh_token: r.refreshToken });
+      if (error) {
+        setRecoveryPending(false);
+        setNotice('That link has expired or was already used. Sign in, or ask for a new email.');
+      }
+    };
+    Linking.getInitialURL().then(handle);
+    const sub = Linking.addEventListener('url', ({ url }) => void handle(url));
+    return () => sub.remove();
+  }, []);
 
   const value = useMemo<AuthState>(
     () => ({
