@@ -122,7 +122,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },
-  ctaLabel: { ...type.body, fontWeight: '700', color: colors.textOnBrand },
+  // Full-width, centred labels: some Android phones (custom system fonts, large text)
+  // measure bold text too narrow and drop the last word, e.g. "Add to Enquiry" → "Add to".
+  ctaLabel: { ...type.body, fontWeight: '700', color: colors.textOnBrand, alignSelf: 'stretch', textAlign: 'center' },
   secondary: {
     minHeight: minTouch,
     borderRadius: radius.md,
@@ -132,7 +134,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },
-  secondaryLabel: { ...type.body, fontWeight: '600', color: colors.brandPrimary },
+  secondaryLabel: { ...type.body, fontWeight: '600', color: colors.brandPrimary, alignSelf: 'stretch', textAlign: 'center' },
   price: { ...type.h2, color: colors.textPrimary },
   taxNote: { ...type.body, color: colors.textSecondary },
   caption: { ...type.caption, color: colors.textSecondary, marginTop: spacing.xs },
