@@ -1,24 +1,26 @@
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
 import { QuotationBreakdown, StatusPill } from '@/components/commercial';
 import { FormError, TextField } from '@/components/form';
 import { OrderForQuotation, QuotationPdfButton } from '@/components/orders';
+import { ChatButton } from '@/components/chat';
 import { Body, CTAButton, ErrorState, H1, LoadingState, SecondaryButton, SectionTitle } from '@/components/ui';
 import { canAnswer, formatDate, QUOTATION_STATUS } from '@/data/commercial';
 import { fetchQuotation, type Quotation } from '@/data/enquiries';
 import { friendlyError } from '@/lib/errors';
 import { formatINR } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
-import { useAsync } from '@/lib/use-async';
+import { useAsync, useRefreshOnFocus } from '@/lib/use-async';
 import { colors, spacing } from '@/theme/tokens';
 
 /** C06 Quotation (§17): lines, totals, validity; approve, ask for a revision, or decline. */
 export default function QuotationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [attempt, setAttempt] = useState(0);
-  const { state, retry } = useAsync(() => fetchQuotation(id), `${id}:${attempt}`);
+  const { state, retry, refresh } = useAsync(() => fetchQuotation(id), `${id}:${attempt}`);
+  useRefreshOnFocus(refresh);
 
   // Opening the quotation tells DEV Group it has been seen.
   useEffect(() => {
@@ -135,7 +137,7 @@ function Answer({ q, onChanged }: { q: Quotation; onChanged: () => void }) {
         {expiredNow && <Body muted>This quotation has expired. Ask us for an updated one in Chat.</Body>}
         {q.status === 'converted' && <OrderForQuotation quotationId={q.id} />}
         <QuotationPdfButton quotationId={q.id} />
-        <SecondaryButton label="Chat with DEV" onPress={() => router.navigate('/chat')} />
+        <ChatButton label="Chat with DEV" kind="enquiry" refId={q.enquiryId} />
       </ScrollView>
     </>
   );

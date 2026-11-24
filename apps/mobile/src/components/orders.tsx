@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { cardStyle, StatusPill } from '@/components/commercial';
-import { SecondaryButton } from '@/components/ui';
+import { CTAButton, SecondaryButton } from '@/components/ui';
 import { formatDate } from '@/data/commercial';
 import { formatBytes, openDocument, pickFile, uploadDocument } from '@/data/documents';
 import {
@@ -16,8 +16,31 @@ import {
 } from '@/data/order-rules';
 import { fetchOrderIdForQuotation, type DocumentFile, type OrderSummary } from '@/data/orders';
 import { shareQuotationPdf } from '@/data/quotation-pdf';
+import { friendlyError } from '@/lib/errors';
 import { formatINR } from '@/lib/format';
+import { supabase } from '@/lib/supabase';
 import { colors, minTouch, radius, spacing, type } from '@/theme/tokens';
+
+/** Turns the approved quotation into an order (§18). */
+export function CreateOrderButton({ quotationId }: { quotationId: string }) {
+  const [busy, setBusy] = useState(false);
+  function onCreate() {
+    Alert.alert('Create the order?', 'The order keeps these prices and lines. The customer can then send payment details.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Create order',
+        onPress: async () => {
+          setBusy(true);
+          const { data, error } = await supabase!.rpc('create_order', { q: quotationId });
+          setBusy(false);
+          if (error) return Alert.alert('Could not create the order', friendlyError(error));
+          router.replace({ pathname: '/staff-order/[id]', params: { id: data as string } });
+        },
+      },
+    ]);
+  }
+  return <CTAButton label={busy ? 'Creating…' : 'Create order'} onPress={onCreate} disabled={busy} />;
+}
 
 /** One order in a list; opens its detail (the staff one for staff lists). */
 export function OrderRow({ item, staff }: { item: OrderSummary; staff?: boolean }) {

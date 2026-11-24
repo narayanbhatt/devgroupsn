@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { cardStyle, KeyValue, MoneyRow, QuotationBreakdown, StatusPill } from '@/components/commercial';
 import { DocumentsSection, OrderProgress } from '@/components/orders';
+import { ChatButton } from '@/components/chat';
 import { Body, CTAButton, EmptyState, ErrorState, H1, LoadingState, SecondaryButton, SectionTitle } from '@/components/ui';
 import { formatDate } from '@/data/commercial';
 import {
@@ -153,7 +154,7 @@ export default function OrderScreen() {
           label="View quotation"
           onPress={() => router.push({ pathname: '/quotation/[id]', params: { id: order.quotationId } })}
         />
-        <SecondaryButton label="Chat with DEV" onPress={() => router.navigate('/chat')} />
+        <ChatButton label="Chat with DEV about this order" kind="order" refId={order.id} />
       </ScrollView>
     </>
   );

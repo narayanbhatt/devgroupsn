@@ -1,9 +1,6 @@
-import { EmptyState, Screen } from '@/components/ui';
+import { ConversationList } from '@/components/chat';
 
+/** C-Chat: the customer's conversations with DEV Group. */
 export default function ChatScreen() {
-  return (
-    <Screen>
-      <EmptyState title="Chat" hint="Conversations with DEV Group will appear here." />
-    </Screen>
-  );
+  return <ConversationList />;
 }

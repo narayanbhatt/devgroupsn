@@ -1,9 +1,6 @@
-import { EmptyState, Screen } from '@/components/ui';
+import { ConversationList } from '@/components/chat';
 
+/** A14 Chat: every customer conversation, newest and unread first. */
 export default function StaffChatScreen() {
-  return (
-    <Screen>
-      <EmptyState title="Chat" hint="Customer conversations arrive in Phase 5." />
-    </Screen>
-  );
+  return <ConversationList staff />;
 }

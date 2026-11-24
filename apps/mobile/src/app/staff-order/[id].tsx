@@ -2,6 +2,7 @@ import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, Switch, Text, View } from 'react-native';
 
+import { ChatButton } from '@/components/chat';
 import { cardStyle, KeyValue, MoneyRow, QuotationBreakdown, StatusPill } from '@/components/commercial';
 import { FormError, FormScreen, TextField } from '@/components/form';
 import { DocumentsSection, OrderProgress } from '@/components/orders';
@@ -243,6 +244,8 @@ function Detail({ order, reload }: { order: Order; reload: () => void }) {
         ) : (
           <KeyValue label="Expected delivery" value={formatDate(order.expectedDelivery)} />
         )}
+
+        <ChatButton label="Chat with customer about this order" kind="order" refId={order.id} />
 
         <SectionTitle>Files</SectionTitle>
         <DocumentsSection

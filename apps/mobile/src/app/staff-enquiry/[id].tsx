@@ -2,9 +2,10 @@ import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router
 import { useCallback, useState } from 'react';
 import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { ChatButton } from '@/components/chat';
 import { cardStyle, KeyValue, StatusPill } from '@/components/commercial';
 import { FormError, TextField } from '@/components/form';
-import { DocumentsSection } from '@/components/orders';
+import { CreateOrderButton, DocumentsSection } from '@/components/orders';
 import { Body, CTAButton, EmptyState, ErrorState, H1, LoadingState, SecondaryButton, SectionTitle } from '@/components/ui';
 import { ENQUIRY_STATUS_STAFF, formatDate, QUOTATION_STATUS_STAFF, type EnquiryStatus } from '@/data/commercial';
 import { EVENT_LABEL, fetchEnquiry, type Enquiry } from '@/data/enquiries';
@@ -50,6 +51,7 @@ export default function StaffEnquiryScreen() {
 
   const closed = CLOSED.includes(enquiry.status);
   const latest = enquiry.quotations[0];
+  const approvedQuote = enquiry.quotations.find((q) => q.status === 'approved');
 
   /** Runs a workflow function; returns ok and its result. */
   async function call(fn: string, args: Record<string, unknown>) {
@@ -145,6 +147,14 @@ export default function StaffEnquiryScreen() {
             )}
           </View>
         )}
+        {canQuote && enquiry.status === 'approved' && approvedQuote && (
+          <View style={{ gap: spacing.sm }}>
+            <Body>
+              The customer approved {approvedQuote.number}. Create the order so they can pay and you can track delivery.
+            </Body>
+            <CreateOrderButton quotationId={approvedQuote.id} />
+          </View>
+        )}
         {!canQuote && <Body muted>Only order managers can prepare quotations or change this enquiry.</Body>}
 
         {enquiry.quotations.length > 0 && (
@@ -227,6 +237,8 @@ export default function StaffEnquiryScreen() {
             <KeyValue label="Notes" value={enquiry.notes} />
           </View>
         </View>
+
+        <ChatButton label="Chat with customer about this enquiry" kind="enquiry" refId={enquiry.id} />
 
         <View>
           <SectionTitle>Files</SectionTitle>
