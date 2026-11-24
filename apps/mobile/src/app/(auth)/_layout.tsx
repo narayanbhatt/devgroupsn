@@ -10,7 +10,8 @@ export default function AuthLayout() {
         headerTintColor: colors.textOnBrand,
         headerTitle: '',
       }}>
-      <Stack.Screen name="welcome" options={{ headerShown: false }} />
+      {/* index is the welcome screen: the route the app lands on when signed out. */}
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="sign-in" options={{ title: 'Sign in', headerTitle: 'Sign in' }} />
       <Stack.Screen name="register" options={{ headerTitle: 'Create account' }} />
       <Stack.Screen name="verify" options={{ headerTitle: 'Enter code' }} />
